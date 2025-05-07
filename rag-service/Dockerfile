@@ -8,6 +8,8 @@ RUN apt-get update && \
     build-essential \
     git \
     wget \
+    iputils-ping \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy and install Python dependencies
@@ -31,11 +33,12 @@ RUN python -c "from transformers import AutoTokenizer, AutoModel; \
 COPY src/ /app/src/
 
 # Set environment variables to make the vLLM service address configurable
-ENV VLLM_HOST="10.233.91.39" \
-VLLM_PORT="2345"
+ENV VLLM_HOST="10.233.91.40" \
+    VLLM_PORT="2345" \
+    SERVICE_PORT="3456"
 
 # Expose service port
 EXPOSE 3456
 
 # Start the service
-CMD ["python", "src/main.py"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "3456"]

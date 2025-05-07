@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import httpx
 import uvicorn
-from src.rag_engine import RAGEngine
+from rag_engine import RAGEngine
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -131,5 +131,7 @@ async def rag_query(request: RAGRequest):
         raise HTTPException(status_code=500, detail=f"服务错误: {str(e)}")
 
 if __name__ == "__main__":
+    import os
+    service_port = int(os.getenv("SERVICE_PORT", "8888"))
     logger.info(f"启动RAG服务，连接vLLM服务: {VLLM_URL}")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=service_port)
