@@ -51,8 +51,8 @@ class RAGEngine:
                     'text': context
                 })
         
-        # 只处理前1000个文档以保持镜像大小合理
-        documents = documents[:1000]
+        # 只处理前10个文档以保持镜像大小合理
+        documents = documents[:10]
         logger.info(f"生成嵌入向量 (总共 {len(documents)} 个文档)")
         
         # 计算文档嵌入

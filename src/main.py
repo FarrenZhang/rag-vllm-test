@@ -11,10 +11,18 @@ from rag_engine import RAGEngine
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# 获取环境变量
-VLLM_HOST = os.getenv("VLLM_HOST", "10.233.91.39")
-VLLM_PORT = os.getenv("VLLM_PORT", "2345")
+# 获取环境变量，加入严格检查
+VLLM_HOST = os.getenv("VLLM_HOST", "gw.tacc.ust.hk")
+if not VLLM_HOST:
+    VLLM_HOST = "gw.tacc.ust.hk"  # 硬编码默认值
+    
+VLLM_PORT = os.getenv("VLLM_PORT", "20138")
+if not VLLM_PORT:
+    VLLM_PORT = "20138"  # 硬编码默认值
+
+# 确保URL正确格式化
 VLLM_URL = f"http://{VLLM_HOST}:{VLLM_PORT}/v1/completions"
+logger.info(f"使用vLLM服务URL: {VLLM_URL}")
 
 # 初始化FastAPI应用
 app = FastAPI(title="RAG服务")
@@ -132,6 +140,6 @@ async def rag_query(request: RAGRequest):
 
 if __name__ == "__main__":
     import os
-    service_port = int(os.getenv("SERVICE_PORT", "8888"))
+    service_port = int(os.getenv("SERVICE_PORT", "3456"))
     logger.info(f"启动RAG服务，连接vLLM服务: {VLLM_URL}")
     uvicorn.run(app, host="0.0.0.0", port=service_port)

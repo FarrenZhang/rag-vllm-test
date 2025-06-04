@@ -6,8 +6,9 @@
 
 - 轻量级RAG实现
 - 使用Contriever作为检索模型
-- 包含预处理的SQuAD数据集（限制为1000条文档）
+- 包含预处理的SQuAD数据集
 - 支持可配置的外部vLLM服务连接
+- 支持使用私有数据路径中的自定义模型和数据集
 - 提供HTTP API接口
 
 ## 项目结构
@@ -112,5 +113,60 @@ POST /rag
 
 ## 环境变量
 
-- `VLLM_HOST`: vLLM服务的主机地址，默认为"10.233.91.39"
+- `VLLM_HOST`: vLLM服务的主机地址，默认为"10.233.91.40"
 - `VLLM_PORT`: vLLM服务的端口，默认为"2345"
+- `SERVICE_PORT`: RAG服务端口，默认为"3456"
+- `MODEL_PATH`: Contriever模型路径，默认为"/app/models/contriever"
+- `DATA_PATH`: 数据集路径，默认为"/app/data/squad.json"
+
+## 在AI Cloud平台使用说明
+
+### 准备私有数据
+
+1. 在cpu04上执行以下命令，将模型和数据集复制到私有数据路径：
+
+```bash
+# 使用sudo运行脚本（需要输入密码）
+sudo ./copy_to_private_data.sh
+```
+
+这将创建以下目录结构：
+
+```
+/data/glusterfs/brick1/demo-project/rag-data/
+  ├── data/
+  │   └── squad.json  # SQuAD数据集
+  └── models/
+      └── contriever/  # Contriever模型文件
+```
+
+### 在AI Cloud平台上启动任务
+
+1. 选择已上传的RAG镜像
+2. 配置环境变量：
+
+   | Variable Name | Value |
+   |---------------|-------|
+   | VLLM_HOST     | 10.233.92.21 |
+   | VLLM_PORT     | 2345 |
+   | MODEL_PATH    | /path/to/mounted/private-data/rag-data/models/contriever |
+   | DATA_PATH     | /path/to/mounted/private-data/rag-data/data/squad.json |
+
+   注意：`/path/to/mounted/private-data` 应替换为AI Cloud平台上挂载私有数据的实际路径。
+
+3. Entry Command配置：
+
+   如果希望自动启动RAG服务，请使用以下命令：
+
+   ```
+   uvicorn src.main:app --host 0.0.0.0 --port 3456
+   ```
+
+   如果希望仅保持SSH连接而手动启动服务，则将Entry Command留空。
+
+### 自定义数据和模型
+
+要使用自己的数据集，请替换私有数据路径中的 `squad.json` 文件。
+要使用其他嵌入模型，请替换私有数据路径中的 `contriever` 目录内容。
+
+数据集格式应与SQuAD数据集兼容，或者您需要修改 `rag_engine.py` 中的 `_process_dataset` 方法以支持其他格式。
